@@ -10,17 +10,17 @@
 
 - 绑定数据
 
-  - 绑定一个数据到选择集上
+  - 绑定一个数据
 
     ```javascript
-    let str = 'hello'
+    const str = 'hello'
     p.datum(str)
     p.text(function(d, i){
         return "第 "+ i + " 个元素绑定的数据是 " + d;
     });
     ```
 
-  - 绑定一个数组到选择集上
+  - 绑定一个数组
 
     ```javascript
     const arr = ['cat','dog','fish']
