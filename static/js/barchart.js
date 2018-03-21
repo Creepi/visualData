@@ -29,7 +29,8 @@ const genRect = obj => {
         .attr("x", (d, i) => padding.left + xScale(i))
         .attr("y", (d, i) => height - padding.bottom - d)
         .attr("width", xScale.bandwidth)
-        .attr("height", d => d)
+        .attr("height", 0)
+     obj.transition().duration(1000).attr("height", d => d) 
 }
 const genText = obj => {
     obj.attr("fill", "#fff")
