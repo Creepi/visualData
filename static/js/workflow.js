@@ -13,7 +13,7 @@ var data = {
             'pos_x': 250,
             'pos_y': 300,
             'type': 'caculate',
-            'input': 1,
+            'input': 3,
             'output': 2,
             'dataId': 'node-2'
         }
@@ -80,27 +80,53 @@ Crp.prototype = {
             .attr("text-anchor", "middle")
             .attr("font-family", 'FontAwesome')
             .text("\uf00c");
-        //draw input
-        for (var i = 0; i < g.attr('input'); i++) {
-            console.log(g.attr("input"))
-            g.append("circle")
-                .attr("class", "node-input")
-                .attr("input", (i + 1))
-                .attr("cx",0)
-                .attr("cy", (i + 1) * height / (1 + parseInt(g.attr("input"))))
-                .attr("r",6)
-        }    
-        // draw output 
-        for (var i = 0; i < g.attr('output'); i++) {
-            console.log(g.attr("output"))
-            g.append("rect")
-                .attr("class", "node-output")
-                .attr("output", (i + 1))
-                .attr("width", 12)
-                .attr("height", 12)
-                .attr("x", width - 6)
-                .attr("y", (i + 1) * height / (1 + parseInt(g.attr("output"))) - 6)
+
+        //绘制端点
+        console.log(document.getElementsByClassName('crp-node').length)
+        let nodes = document.getElementsByClassName('crp-node')
+        for (let j = 0; j < nodes.length; j++) {
+            for (let i = 0; i < nodes[j].getAttribute('input'); i++) {
+                var nodeCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                nodeCircle.setAttribute('class', 'node-input')
+                nodeCircle.setAttribute('input', (i + 1))
+                nodeCircle.setAttribute('cx', 0)
+                nodeCircle.setAttribute('cy', (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("input"))))
+                nodeCircle.setAttribute('r', '6')
+                nodes[j].appendChild(nodeCircle)
+            }
+            for (let i = 0; i < nodes[j].getAttribute('output'); i++) {
+                var nodeRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                nodeRect.setAttribute('class', 'node-output')
+                nodeRect.setAttribute('output', (i + 1))
+                nodeRect.setAttribute('width', 12)
+                nodeRect.setAttribute('height', 12)
+                nodeRect.setAttribute("y", (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("output"))) - 6)
+                nodeRect.setAttribute('x', width-6)
+                nodes[j].appendChild(nodeRect)
+            }
+
         }
+        // //draw input
+        // for (var i = 0; i < g.attr('input'); i++) {
+
+        //     g.append("circle")
+        //         .attr("class", "node-input")
+        //         .attr("input", (i + 1))
+        //         .attr("cx",0)
+        //         .attr("cy", (i + 1) * height / (1 + parseInt(g.attr("input"))))
+        //         .attr("r",6)
+        // }    
+        // draw output 
+        // for (var i = 0; i < g.attr('output'); i++) {
+        //     console.log(g.attr("output"))
+        //     g.append("rect")
+        //         .attr("class", "node-output")
+        //         .attr("output", (i + 1))
+        //         .attr("width", 12)
+        //         .attr("height", 12)
+        //         .attr("x", width - 6)
+        //         .attr("y", (i + 1) * height / (1 + parseInt(g.attr("output"))) - 6)
+        // }
     },
 
 }
