@@ -407,7 +407,7 @@ function addNode(svg, node) {
     var bound = rect.node().getBoundingClientRect();
     var width = bound.width;
     var height = bound.height;
-
+g.append("rect")
     // text
     g.append("text")
      .text(node.text)

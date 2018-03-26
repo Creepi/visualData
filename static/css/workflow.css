@@ -8,10 +8,24 @@ body{
     height: 100%;
 }
 .crp-node{
-    position: absolute;
-    left:0;
-    top:0;
     padding:20px;
     border: 1px solid black;
     text-align: center;
+    cursor:move;
+}
+.crp-node > .crp-node-wrap{
+    width: 180px;
+    height: 80px;
+}
+.node-input{
+    stroke: #333;
+    stroke-width: 2px;
+    fill: #fff;
+    cursor: crosshair;
+}
+.node-output{
+    stroke: #333;
+    stroke-width: 2px;
+    fill: #fff;
+    cursor: crosshair;
 }
