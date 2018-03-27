@@ -36,9 +36,6 @@ Crp.prototype = {
         this.drawConnector()
         this.dragAdd()
     },
-    dragAdd: function () {
-
-    },
     drawConnector: function () {
         let g = this.wrap.selectAll('.crp-node').data(this.nodes).enter().append("g")
             .attr("class", "crp-node")
@@ -85,6 +82,7 @@ Crp.prototype = {
         console.log(document.getElementsByClassName('crp-node').length)
         let nodes = document.getElementsByClassName('crp-node')
         for (let j = 0; j < nodes.length; j++) {
+            //draw inputs
             for (let i = 0; i < nodes[j].getAttribute('input'); i++) {
                 var nodeCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 nodeCircle.setAttribute('class', 'node-input')
@@ -94,6 +92,7 @@ Crp.prototype = {
                 nodeCircle.setAttribute('r', '6')
                 nodes[j].appendChild(nodeCircle)
             }
+            //draw outputs
             for (let i = 0; i < nodes[j].getAttribute('output'); i++) {
                 var nodeRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 nodeRect.setAttribute('class', 'node-output')
@@ -101,33 +100,28 @@ Crp.prototype = {
                 nodeRect.setAttribute('width', 12)
                 nodeRect.setAttribute('height', 12)
                 nodeRect.setAttribute("y", (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("output"))) - 6)
-                nodeRect.setAttribute('x', width-6)
+                nodeRect.setAttribute('x', width - 6)
                 nodes[j].appendChild(nodeRect)
             }
 
         }
-        // //draw input
-        // for (var i = 0; i < g.attr('input'); i++) {
-
-        //     g.append("circle")
-        //         .attr("class", "node-input")
-        //         .attr("input", (i + 1))
-        //         .attr("cx",0)
-        //         .attr("cy", (i + 1) * height / (1 + parseInt(g.attr("input"))))
-        //         .attr("r",6)
-        // }    
-        // draw output 
-        // for (var i = 0; i < g.attr('output'); i++) {
-        //     console.log(g.attr("output"))
-        //     g.append("rect")
-        //         .attr("class", "node-output")
-        //         .attr("output", (i + 1))
-        //         .attr("width", 12)
-        //         .attr("height", 12)
-        //         .attr("x", width - 6)
-        //         .attr("y", (i + 1) * height / (1 + parseInt(g.attr("output"))) - 6)
-        // }
     },
+    dragAdd: function () {
+        d3.selectAll('.crp-node').call(d3.drag()
+            .on("start", this.started)
+            .on("drag", this.dragged)
+            .on("end", this.ended))
+    },
+    started: function () {
+        d3.select(this).attr('transform', )
+    },
+    dragged: function (d) {
+        d3.select(this).attr('transform',`translate(${d3.event.x - 90},${d3.event.y-40})` )
+    },
+    ended: function (d) {
+        d.pos_x = d3.event.x
+        d.pos_y = d3.event.y
+    }
 
 }
 
