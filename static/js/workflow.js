@@ -6,7 +6,8 @@ var data = {
             'type': 'dataSource',
             'input': 2,
             'output': 1,
-            'dataId': 'node-1'
+            'dataId': 'node-1',
+            'theme':'#415e93'
         },
         {
             'name': 'cal',
@@ -15,7 +16,8 @@ var data = {
             'type': 'caculate',
             'input': 3,
             'output': 1,
-            'dataId': 'node-2'
+            'dataId': 'node-2',
+            'theme':'#6a926d'
         }
     ],
     links: [{
@@ -30,7 +32,7 @@ const Crp = function (wrap, data) {
     this.links = data.links
     this.headerHeight = 30
     this.pointDistanceX = 0,
-    this.pointDistanceY = 0
+        this.pointDistanceY = 0
 
 }
 Crp.prototype = {
@@ -45,30 +47,25 @@ Crp.prototype = {
             .attr("id", d => '#' + d.dataId)
             .attr("input", d => d.input)
             .attr("output", d => d.output)
+            .attr("theme",d => d.theme)
             .attr("transform", d => `translate(${d.pos_x},${d.pos_y})`)
-        let rect = g.append('rect')
-            .attr("rx", 5)
-            .attr("class", "crp-node-wrap")
-            .attr("ry", 5)
+        let rectH = g.append('rect')
+            .attr("rx", 2)
+            .attr("ry", 2)
+            .attr("class", "crp-node-header")
             .attr("stroke-width", 2)
-            .attr("stroke", "#333")
+            .attr("stroke", "#e5e3e6")
+            .attr("fill", d => d.theme)
+        let rect = g.append('rect')
+            .attr("rx", 2)
+            .attr("ry", 2)
+            .attr("class", "crp-node-wrap")
+            .attr("stroke-width", 2)
+            .attr("stroke", "#e5e3e6")
             .attr("fill", "#fff")
             .attr("x", 0)
             .attr('y', this.headerHeight)
-        let rectH = g.append('rect')
-            .attr("rx", 5)
-            .attr("ry", 5)
-            .attr("class", "crp-node-header")
-            .attr("stroke-width", 2)
-            .attr("stroke", "#333")
-            .attr("fill", d => {
-                switch (d.name) {
-                    case "data":
-                        return "#42a0c6"
-                    case "cal":
-                        return "#9bd860"
-                }
-            })
+
         var bound = rect.node().getBoundingClientRect();
         var width = bound.width;
         var height = bound.height;
@@ -118,6 +115,7 @@ Crp.prototype = {
                 nodeCircle.setAttribute('cx', 0)
                 nodeCircle.setAttribute('cy', (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("input"))) + this.headerHeight)
                 nodeCircle.setAttribute('r', '6')
+                nodeCircle.setAttribute('stroke', nodes[j].getAttribute("theme"));
                 nodes[j].appendChild(nodeCircle)
             }
             //draw outputs
@@ -129,6 +127,7 @@ Crp.prototype = {
                 nodeRect.setAttribute('height', 12)
                 nodeRect.setAttribute("y", (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("output"))) + this.headerHeight - 6)
                 nodeRect.setAttribute('x', width - 6)
+                nodeRect.setAttribute('stroke', nodes[j].getAttribute("theme"));
                 nodes[j].appendChild(nodeRect)
             }
 
