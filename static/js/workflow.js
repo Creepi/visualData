@@ -126,26 +126,26 @@ Crp.prototype = {
         for (let j = 0; j < nodes.length; j++) {
             //draw inputs
             for (let i = 0; i < nodes[j].getAttribute('input'); i++) {
-                var nodeCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                let nodeCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 nodeCircle.setAttribute('class', 'node-link node-input')
                 nodeCircle.setAttribute("linkType", "input")
                 nodeCircle.setAttribute('input', (i + 1))
                 nodeCircle.setAttribute('cx', 0)
                 nodeCircle.setAttribute('cy', (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("input"))) + this.headerHeight)
-                nodeCircle.setAttribute('r', this.linkSize/2)
+                nodeCircle.setAttribute('r', this.linkSize / 2)
                 nodeCircle.setAttribute('stroke', nodes[j].getAttribute("theme"));
                 nodes[j].appendChild(nodeCircle)
             }
             //draw outputs
             for (let i = 0; i < nodes[j].getAttribute('output'); i++) {
-                var nodeRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                let nodeRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 nodeRect.setAttribute('class', 'node-link node-output')
                 nodeRect.setAttribute("linkType", "output")
                 nodeRect.setAttribute('output', (i + 1))
                 nodeRect.setAttribute('width', this.linkSize)
                 nodeRect.setAttribute('height', this.linkSize)
-                nodeRect.setAttribute("y", (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("output"))) + this.headerHeight - this.linkSize/2)
-                nodeRect.setAttribute('x', width - this.linkSize/2)
+                nodeRect.setAttribute("y", (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("output"))) + this.headerHeight - this.linkSize / 2)
+                nodeRect.setAttribute('x', width - this.linkSize / 2)
                 nodeRect.setAttribute('stroke', nodes[j].getAttribute("theme"));
                 nodes[j].appendChild(nodeRect)
             }
@@ -153,7 +153,6 @@ Crp.prototype = {
         }
     },
     dragAdd: function () {
-        const that = this
         //node点击
         d3.selectAll('.crp-node').call(d3.drag()
             .on("start", this.started)
@@ -161,7 +160,7 @@ Crp.prototype = {
             .on("end", this.ended))
         //连接点点击
         d3.selectAll(".node-link").call(
-            d3.drag()
+            d3.drag().subject(this)
             .on("start", this.linestarted)
             .on("drag", this.linedragged)
             .on("end", this.lineended)
@@ -184,19 +183,18 @@ Crp.prototype = {
         let anchor = d3.select(this)
         let nodeActive = d3.select(this.parentNode)
         let linkType = d3.select(this).attr('linkType')
-        let linePoint = [anchor.attr('x') + (+anchor.attr("output") + 1)]
+        let that = d3.event.subject
+        let linePoint = []
+       //计算连线坐标
         switch (linkType) {
             case "input":
-                linePoint = [anchor.attr('x') - (+anchor.attr("output") + 1)]
+                linePoint = [anchor.attr('x') - that.linkSize / 2, anchor.attr('y') - that.linkSize / 2]
+                break;
+            case "output":
+                linePoint = [anchor.attr('x') + that.linkSize / 2, anchor.attr('y') + that.linkSize / 2]
+                break;
         }
-        console.log(d3.select(this))
-        activeLine = d3.select(this.wrap)
-            .append("path")
-            .attr("class", "cable")
-            .attr("from", nodeActive.attr("id"))
-            .attr("start", dx + ", " + dy)
-            .attr("output", d3.select(this).attr("output"))
-            .attr("marker-end", "url(#arrowhead)");
+        console.log(linePoint)
     }
 
 }
