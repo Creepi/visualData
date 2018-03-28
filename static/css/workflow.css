@@ -1,34 +1,45 @@
-body{
+body {
     width: 100%;
     height: 100%;
 }
-.crp-container{
+
+.crp-container {
     position: relative;
     width: 100%;
     height: 100%;
 }
-.crp-node{
-    padding:20px;
+
+.crp-node {
+    padding: 20px;
     border: 1px solid black;
     text-align: center;
-    cursor:move;
+    cursor: move;
 }
-.crp-node > .crp-node-wrap{
+
+.crp-node-middle {
     width: 180px;
-    height: 60px;
+    height: 5px;
 }
-.crp-node > .crp-node-header{
+
+.crp-node>.crp-node-wrap {
+    width: 180px;
+    height: 90px;
+}
+
+.crp-node>.crp-node-header {
     width: 180px;
     height: 30px;
     background: red
 }
-.node-input{
-    fill:#fff;
+
+.node-input {
+    fill: #dfdfdf;
     stroke-width: 2px;
     cursor: crosshair;
 }
-.node-output{
-    fill:#fff;
+
+.node-output {
+    fill: #dfdfdf;
     stroke-width: 2px;
     cursor: crosshair;
 }

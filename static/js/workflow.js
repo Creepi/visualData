@@ -7,7 +7,7 @@ var data = {
             'input': 2,
             'output': 1,
             'dataId': 'node-1',
-            'theme':'#415e93'
+            'theme': '#3e72b3'
         },
         {
             'name': 'cal',
@@ -17,7 +17,7 @@ var data = {
             'input': 3,
             'output': 1,
             'dataId': 'node-2',
-            'theme':'#6a926d'
+            'theme': '#67b17a'
         }
     ],
     links: [{
@@ -47,28 +47,37 @@ Crp.prototype = {
             .attr("id", d => '#' + d.dataId)
             .attr("input", d => d.input)
             .attr("output", d => d.output)
-            .attr("theme",d => d.theme)
+            .attr("theme", d => d.theme)
             .attr("transform", d => `translate(${d.pos_x},${d.pos_y})`)
-        let rectH = g.append('rect')
-            .attr("rx", 2)
-            .attr("ry", 2)
-            .attr("class", "crp-node-header")
-            .attr("stroke-width", 2)
-            .attr("stroke", "#e5e3e6")
-            .attr("fill", d => d.theme)
+
         let rect = g.append('rect')
-            .attr("rx", 2)
-            .attr("ry", 2)
+            .attr("rx", 5)
+            .attr("ry", 5)
             .attr("class", "crp-node-wrap")
             .attr("stroke-width", 2)
             .attr("stroke", "#e5e3e6")
             .attr("fill", "#fff")
             .attr("x", 0)
-            .attr('y', this.headerHeight)
-
+            .attr('y', 0)
         var bound = rect.node().getBoundingClientRect();
         var width = bound.width;
-        var height = bound.height;
+        var height = bound.height - this.headerHeight;
+        let rectH = g.append('rect')
+            .attr("rx", 5)
+            .attr("ry", 5)
+            .attr("class", "crp-node-header")
+            .attr("y", "0")
+            .attr("stroke-width", 2)
+            .attr("stroke", d=>d.theme)
+            .attr("fill", d => d.theme)
+        g.append('rect')
+            .attr("class", "crp-node-middle")
+            .attr("fill", d => d.theme)
+            .attr("y", this.headerHeight - 5)
+            .attr("stroke-width", 2)
+            .attr("stroke", d=>d.theme)
+            .attr("fill", d => d.theme)
+
         g.append("text")
             .text(d => d.name)
             .attr("x", width / 2)
@@ -110,7 +119,7 @@ Crp.prototype = {
             //draw inputs
             for (let i = 0; i < nodes[j].getAttribute('input'); i++) {
                 var nodeCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                nodeCircle.setAttribute('class', 'node-input')
+                nodeCircle.setAttribute('class', 'node-link node-input')
                 nodeCircle.setAttribute('input', (i + 1))
                 nodeCircle.setAttribute('cx', 0)
                 nodeCircle.setAttribute('cy', (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("input"))) + this.headerHeight)
@@ -121,7 +130,7 @@ Crp.prototype = {
             //draw outputs
             for (let i = 0; i < nodes[j].getAttribute('output'); i++) {
                 var nodeRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                nodeRect.setAttribute('class', 'node-output')
+                nodeRect.setAttribute('class', 'node-link node-output')
                 nodeRect.setAttribute('output', (i + 1))
                 nodeRect.setAttribute('width', 12)
                 nodeRect.setAttribute('height', 12)
@@ -135,28 +144,37 @@ Crp.prototype = {
     },
     dragAdd: function () {
         const that = this
+        //node点击
         d3.selectAll('.crp-node').call(d3.drag()
             .on("start", this.started)
             .on("drag", this.dragged)
             .on("end", this.ended))
+        //连接点点击
+        d3.selectAll(".node-link").call(
+            d3.drag()
+            .on("start", this.linestarted)
+            .on("drag", this.linedragged)
+            .on("end", this.lineended)
+        );
     },
     started: function (d) {
+        //计算点击位置间距
         this.pointDistanceX = d3.event.x - d.pos_x
         this.pointDistanceY = d3.event.y - d.pos_y
     },
     dragged: function (d) {
         let transform = d3.select(this).attr('transform')
-        getTranslate = function (transform) {
-            var arr = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",");
-            return [+arr[0], +arr[1]];
-        }
-        console.log(this.pointDistance)
         d3.select(this).attr('transform', `translate(${d3.event.x - this.pointDistanceX},${d3.event.y - this.pointDistanceY})`)
     },
     ended: function (d) {
         d.pos_x = d3.event.x - this.pointDistanceX
         d.pos_y = d3.event.y - this.pointDistanceY
     },
+    linestarted: function (d) {
+        let anchor = d3.select(this)
+        let nodeActive = d3.select(this.parentNode)
+        console.log(d3.select(this))
+    }
 
 }
 
