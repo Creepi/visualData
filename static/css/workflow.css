@@ -21,15 +21,8 @@ body {
     height: 5px;
 }
 
-.crp-node>.crp-node-wrap {
-    width: 180px;
-    height: 90px;
-}
-
 .crp-node>.crp-node-header {
-    width: 180px;
     height: 30px;
-    background: red
 }
 
 .node-input {

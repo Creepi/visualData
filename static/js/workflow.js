@@ -1,4 +1,4 @@
-var data = {
+const data = {
     nodes: [{
             'name': 'data',
             'pos_x': 150,
@@ -14,7 +14,7 @@ var data = {
             'pos_x': 250,
             'pos_y': 300,
             'type': 'caculate',
-            'input': 3,
+            'input': 1,
             'output': 1,
             'dataId': 'node-2',
             'theme': '#67b17a'
@@ -27,12 +27,16 @@ var data = {
     }, ]
 }
 const Crp = function (wrap, data) {
-    this.wrap = d3.select('.crp-container')
+
+    this.nodeW = 180 //node宽度
+    this.nodeH = 90 //node高度
+    this.linkSize = 15 //连接口size
+    this.wrap = d3.select('.crp-container') //容器名称
     this.nodes = data.nodes
     this.links = data.links
     this.headerHeight = 30
-    this.pointDistanceX = 0,
-        this.pointDistanceY = 0
+    this.pointDistanceX = 0 //点击间距
+    this.pointDistanceY = 0
 
 }
 Crp.prototype = {
@@ -49,7 +53,6 @@ Crp.prototype = {
             .attr("output", d => d.output)
             .attr("theme", d => d.theme)
             .attr("transform", d => `translate(${d.pos_x},${d.pos_y})`)
-
         let rect = g.append('rect')
             .attr("rx", 5)
             .attr("ry", 5)
@@ -59,6 +62,8 @@ Crp.prototype = {
             .attr("fill", "#fff")
             .attr("x", 0)
             .attr('y', 0)
+            .style("width", this.nodeW)
+            .style("height", this.nodeH)
         var bound = rect.node().getBoundingClientRect();
         var width = bound.width;
         var height = bound.height - this.headerHeight;
@@ -68,15 +73,18 @@ Crp.prototype = {
             .attr("class", "crp-node-header")
             .attr("y", "0")
             .attr("stroke-width", 2)
-            .attr("stroke", d=>d.theme)
+            .attr("stroke", d => d.theme)
             .attr("fill", d => d.theme)
+            .style("width", this.nodeW)
+        //横条 取消rect下圆角
         g.append('rect')
             .attr("class", "crp-node-middle")
             .attr("fill", d => d.theme)
             .attr("y", this.headerHeight - 5)
             .attr("stroke-width", 2)
-            .attr("stroke", d=>d.theme)
+            .attr("stroke", d => d.theme)
             .attr("fill", d => d.theme)
+            .style("width", this.nodeW)
 
         g.append("text")
             .text(d => d.name)
@@ -120,10 +128,11 @@ Crp.prototype = {
             for (let i = 0; i < nodes[j].getAttribute('input'); i++) {
                 var nodeCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 nodeCircle.setAttribute('class', 'node-link node-input')
+                nodeCircle.setAttribute("linkType", "input")
                 nodeCircle.setAttribute('input', (i + 1))
                 nodeCircle.setAttribute('cx', 0)
                 nodeCircle.setAttribute('cy', (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("input"))) + this.headerHeight)
-                nodeCircle.setAttribute('r', '6')
+                nodeCircle.setAttribute('r', this.linkSize/2)
                 nodeCircle.setAttribute('stroke', nodes[j].getAttribute("theme"));
                 nodes[j].appendChild(nodeCircle)
             }
@@ -131,11 +140,12 @@ Crp.prototype = {
             for (let i = 0; i < nodes[j].getAttribute('output'); i++) {
                 var nodeRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 nodeRect.setAttribute('class', 'node-link node-output')
+                nodeRect.setAttribute("linkType", "output")
                 nodeRect.setAttribute('output', (i + 1))
-                nodeRect.setAttribute('width', 12)
-                nodeRect.setAttribute('height', 12)
-                nodeRect.setAttribute("y", (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("output"))) + this.headerHeight - 6)
-                nodeRect.setAttribute('x', width - 6)
+                nodeRect.setAttribute('width', this.linkSize)
+                nodeRect.setAttribute('height', this.linkSize)
+                nodeRect.setAttribute("y", (i + 1) * height / (1 + parseInt(nodes[j].getAttribute("output"))) + this.headerHeight - this.linkSize/2)
+                nodeRect.setAttribute('x', width - this.linkSize/2)
                 nodeRect.setAttribute('stroke', nodes[j].getAttribute("theme"));
                 nodes[j].appendChild(nodeRect)
             }
@@ -173,7 +183,20 @@ Crp.prototype = {
     linestarted: function (d) {
         let anchor = d3.select(this)
         let nodeActive = d3.select(this.parentNode)
+        let linkType = d3.select(this).attr('linkType')
+        let linePoint = [anchor.attr('x') + (+anchor.attr("output") + 1)]
+        switch (linkType) {
+            case "input":
+                linePoint = [anchor.attr('x') - (+anchor.attr("output") + 1)]
+        }
         console.log(d3.select(this))
+        activeLine = d3.select(this.wrap)
+            .append("path")
+            .attr("class", "cable")
+            .attr("from", nodeActive.attr("id"))
+            .attr("start", dx + ", " + dy)
+            .attr("output", d3.select(this).attr("output"))
+            .attr("marker-end", "url(#arrowhead)");
     }
 
 }
