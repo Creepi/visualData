@@ -32,3 +32,39 @@
 
     > 注:d为数据,i为索引
 
+- 拖动
+
+  - 绑定事件
+
+    ```javascript
+            d3.selectAll('.sel').call(d3.drag()
+                .on("start", started)
+                .on("drag", dragged)
+                .on("end", ended))
+    ```
+
+  - 指定主体访问器
+
+    ```javascript
+            d3.selectAll('.sel').call(d3.drag().subject(this)
+                .on("start", started)
+                .on("drag", dragged)
+                .on("end", ended))
+    ```
+
+- call
+
+  ```JavaScript
+  //已知函数
+  function name(selection, first, last) {
+    selection
+        .attr("first-name", first)
+        .attr("last-name", last);
+  }
+
+  d3.selectAll("div").call(name, "John", "Snow");
+  //等同于
+  name(d3.selectAll("div"), "John", "Snow");
+  ```
+
+  ​
