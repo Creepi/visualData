@@ -226,9 +226,7 @@ Crp.prototype = {
         that.activeLine.style('pointer-events','none');
         //连线基本数据
         lineData ="M" + that.points[0][0] + "," + that.points[0][1]
-        + "C" + that.points[0][0] + "," + (that.points[0][1] + that.points[1][1]) / 2
-        + " " + that.points[1][0] + "," +  (that.points[0][1] + that.points[1][1]) / 2
-        + " " + that.points[1][0] + "," + that.points[1][1];
+        + "L"  +that.points[1][0] + "," + that.points[1][1];
         //画线
         that.drawLine(lineData)
     },
@@ -257,7 +255,7 @@ Crp.prototype = {
     },
     drawLine:function(lineData){ 
         that = d3.dataList
-        that.activeLine.attr("d", lineData).attr("sroke-width",2).attr("stroke",that.lineColor).attr("fill",that.lineColor);
+        that.activeLine.attr("d", lineData).attr("stroke-width",2).attr("stroke",that.lineColor).attr("fill",that.lineColor);
 
     },
     getTranslate: function (transform) {
