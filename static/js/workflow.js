@@ -8,7 +8,7 @@ const data = {
             'output': 1,
             'dataId': 'node-1',
             'theme': '#3e72b3',
-            'nodeId':'2131241'
+            'nodeId': '2131241'
         },
         {
             'name': 'cal',
@@ -19,7 +19,7 @@ const data = {
             'output': 1,
             'dataId': 'node-2',
             'theme': '#67b17a',
-            'nodeId':'324234'
+            'nodeId': '324234'
         }
     ],
     links: [{
@@ -29,13 +29,15 @@ const data = {
     }, ]
 }
 const Crp = function (wrap, data) {
+    this.wrap = d3.select('.crp-container') //容器名称
     this.nodeW = 180 //node宽度
     this.nodeH = 90 //node高度
     this.linkSize = 15 //连接口size
-    this.lineColor = '#e5e3e6'
-    this.wrap = d3.select('.crp-container') //容器名称
+    this.lineColor = '#e5e3e6'//连线颜色
+
     this.nodes = data.nodes
     this.links = data.links
+
     this.headerHeight = 30
     this.pointDistanceX = 0 //点击间距
     this.pointDistanceY = 0
@@ -45,7 +47,7 @@ const Crp = function (wrap, data) {
     this.nodeLineBegin = ''
     this.linkCurrent = ''
     this.nodeCurrent - ''
-    this.anchorBegin = ''//起始联结口
+    this.anchorBegin = '' //起始联结口
     d3.dataList = this
 }
 Crp.prototype = {
@@ -128,6 +130,24 @@ Crp.prototype = {
             .attr("text-anchor", "middle")
             .attr("font-family", 'FontAwesome')
             .text("\uf00c");
+        //定义箭头
+        let defs = this.wrap.append("defs");
+
+        let arrowMarker = defs.append("marker")
+            .attr("id", "arrow")
+            .attr("markerUnits", "strokeWidth")
+            .attr("markerWidth", "16")
+            .attr("markerHeight", "16")
+            .attr("viewBox", "0 0 12 12")
+            .attr("refX", "8")
+            .attr("refY", "6")
+            .attr("orient", "auto");
+
+        let arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,2";
+
+        arrowMarker.append("path")
+            .attr("d", arrow_path)
+            .attr("fill", this.lineColor);
 
         //绘制端点
         let nodes = document.getElementsByClassName('crp-node')
@@ -161,7 +181,7 @@ Crp.prototype = {
         }
     },
     dragAdd: function () {
-        d3.selectAll(".node-link").on("mouseover",this.linkover,true).on("mouseleave",this.linkleave,true)
+        d3.selectAll(".node-link").on("mouseover", this.linkover, true).on("mouseleave", this.linkleave, true)
         //node点击
         d3.selectAll('.crp-node').call(d3.drag()
             .on("start", this.started)
@@ -176,21 +196,24 @@ Crp.prototype = {
         );
         //获取当前选中连接点
 
-        
+
     },
     started: function (d) {
+        let that = d3.dataList
         //计算点击位置间距
-        this.pointDistanceX = d3.event.x - d.pos_x
-        this.pointDistanceY = d3.event.y - d.pos_y
+        that.pointDistanceX = d3.event.x - d.pos_x
+        that.pointDistanceY = d3.event.y - d.pos_y
     },
     dragged: function (d) {
-        
+        let that = d3.dataList
         let transform = d3.select(this).attr('transform')
-        d3.select(this).attr('transform', `translate(${d3.event.x - this.pointDistanceX},${d3.event.y - this.pointDistanceY})`)
+        d3.select(this).attr('transform', `translate(${d3.event.x - that.pointDistanceX},${d3.event.y - that.pointDistanceY})`)
+        that.updateLine(d3.select(this)) //更新线
     },
     ended: function (d) {
-        d.pos_x = d3.event.x - this.pointDistanceX
-        d.pos_y = d3.event.y - this.pointDistanceY
+        let that = d3.dataList
+        d.pos_x = d3.event.x - that.pointDistanceX
+        d.pos_y = d3.event.y - that.pointDistanceY
     },
     linestarted: function (d) {
         let that = d3.event.subject
@@ -202,20 +225,21 @@ Crp.prototype = {
         //计算node内连接线起始点
         switch (linkType) {
             case "input":
-                linePoint = [parseInt(that.anchorBegin.attr('cx')), parseInt(that.anchorBegin.attr('cy')) ]
+                linePoint = [parseInt(that.anchorBegin.attr('cx')), parseInt(that.anchorBegin.attr('cy'))]
                 break;
             case "output":
                 linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize / 2, parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
                 break;
         }
+
         that.activeLine = that.wrap
             .append("path")
             .attr("class", "cable")
             .attr("from", that.nodeLineBegin.attr("id"))
             .attr("start", linePoint[0] + ", " + linePoint[1])
             .attr("output", d3.select(this).attr("output"))
-            .attr("marker-end", "url(#arrowhead)");
-            that.points.push([that.getTranslate(that.nodeLineBegin.attr('transform'))[0] + linePoint[0], that.getTranslate(that.nodeLineBegin.attr('transform'))[1]+ linePoint[1]])
+            .attr("marker-end", "url(#arrow)");
+        that.points.push([that.getTranslate(that.nodeLineBegin.attr('transform'))[0] + linePoint[0], that.getTranslate(that.nodeLineBegin.attr('transform'))[1] + linePoint[1]])
     },
     linedragged: function () {
         //获取底层this
@@ -223,45 +247,49 @@ Crp.prototype = {
         let nodeActive = d3.select(this.parentNode)
         let lineData = ''
         that.points[1] = [d3.event.x + that.getTranslate(nodeActive.attr('transform'))[0], d3.event.y + that.getTranslate(nodeActive.attr('transform'))[1]];
-        that.activeLine.style('pointer-events','none');
+        that.activeLine.style('pointer-events', 'none');
         //连线基本数据
-        lineData ="M" + that.points[0][0] + "," + that.points[0][1]
-        + "L"  +that.points[1][0] + "," + that.points[1][1];
+        lineData = "M" + that.points[0][0] + "," + that.points[0][1] +
+            "L" + that.points[1][0] + "," + that.points[1][1];
         //画线
         that.drawLine(lineData)
     },
-    lineended: function () { 
+    lineended: function () {
         let that = d3.event.subject
         console.log(that.anchorBegin.attr('linkType'))
         let nodeLineEnd = d3.select(this.parentNode)
         let anchorEnd = d3.select(this)
         console.log(anchorEnd.attr('linkType'))
         //判断 终点是否为节点、输入对接输出、是否为同一个node元素
-        if(that.linkCurrent !='' && that.anchorBegin.attr('linkType') != that.linkCurrent.attr('linkType')&& that.nodeLineBegin.attr('id')!=that.nodeCurrent.attr('id')){
-           
-        }else{
+        if (that.linkCurrent != '' && that.anchorBegin.attr('linkType') != that.linkCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
+
+        } else {
             that.activeLine.remove()
         }
         that.points = [] //连接线坐标清零
         that.activeLink = ''
     },
-    linkover:function(){
-       d3.dataList.linkCurrent = d3.select(this)
-       d3.dataList.nodeCurrent = d3.select(this.parentNode)
+    linkover: function () {
+        d3.dataList.linkCurrent = d3.select(this)
+        d3.dataList.nodeCurrent = d3.select(this.parentNode)
     },
-    linkleave:function(){
-        console.log( d3.dataList.linkCurrent)
+    linkleave: function () {
+        console.log(d3.dataList.linkCurrent)
         d3.dataList.linkCurrent = ''
     },
-    drawLine:function(lineData){ 
+    drawLine: function (lineData) {
         that = d3.dataList
-        that.activeLine.attr("d", lineData).attr("stroke-width",2).attr("stroke",that.lineColor).attr("fill",that.lineColor);
+        that.activeLine.attr("d", lineData).attr("stroke-width", 2).attr("stroke", that.lineColor).attr("fill", that.lineColor);
 
     },
     getTranslate: function (transform) {
         //解析translate坐标
         let arr = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",");
         return [+arr[0], +arr[1]];
+    },
+    //更新连线
+    updateLine:function(elem) {
+        elem.attr()
     }
 
 }

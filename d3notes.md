@@ -6,7 +6,18 @@
   let p = d3.select("body").selectAll('p').text('helloword')
   ```
 
-  ​
+  - *selection*.**filter**(*filter*)
+
+    过滤选择集并返回一个新的过滤后的选择集。*filter* 可以是一个选择字符串也可以是一个函数。如果 *filter* 为函数则会为被过滤的选择集中的每个元素进行调用，并传递当前的数据 (*d*), 当前的索引 (*i*) 以及当前的分组 (*nodes*), 函数中 *this* 指向当前 DOM 元素 (*nodes*[*i*]).
+
+    ```javascript
+    var even = d3.selectAll("tr").filter(":nth-child(even)"); //过滤出表格行中的偶数行
+    var even = d3.selectAll("tr:nth-child(even)");
+    var even = d3.selectAll("tr").filter(function(d, i) { return i & 1; });
+    var even = d3.selectAll("tr").select(function(d, i) { return i & 1 ? this : null; });
+    ```
+
+    ​
 
 - 绑定数据
 
