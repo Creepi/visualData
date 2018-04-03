@@ -229,7 +229,7 @@ Crp.prototype = {
                 alert('不是输出端点')
                 break;
             case "output":
-                linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize / 2, parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
+                linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize+2 , parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
                 that.activeLine = that.wrap
                     .append("path")
                     .attr("class", "cable")
@@ -247,6 +247,7 @@ Crp.prototype = {
         //获取底层this
         let that = d3.event.subject
         let nodeActive = d3.select(this.parentNode)
+        console.log(nodeActive.attr('transform'))
         let lineData = ''
         console.log(that.points.length)
         if (that.points.length !=0) {
@@ -270,6 +271,9 @@ Crp.prototype = {
             if (that.linkCurrent != '' && that.anchorBegin.attr('linkType') != that.linkCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
                 that.activeLine.attr('to', that.nodeCurrent.attr('id'))
                 that.activeLine.attr('end', that.linkCurrent.attr('cx')+','+that.linkCurrent.attr('cy'))
+                let lineData = "M" +that.points[0][0]+ "," + that.points[0][1] +
+                "L" + (that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize) + "," + that.points[1][1];
+                that.drawLine(lineData)
             } else {
                 that.activeLine.remove()
             }
@@ -292,6 +296,7 @@ Crp.prototype = {
     },
     getTranslate: function (transform) {
         //解析translate坐标
+        console.log(transform)
         let arr = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",");
         return [+arr[0], +arr[1]];
     },
@@ -322,7 +327,7 @@ Crp.prototype = {
             start_pos[1] = +start_pos[1]
             let end_pos = d3.select(this).attr("end").split(",");
             console.log(end_pos)
-            end_pos[0] = +end_pos[0] + tran_pos[0]
+            end_pos[0] = +end_pos[0] + tran_pos[0] - that.linkSize
             end_pos[1] = +end_pos[1]+tran_pos[1]
             console.log(end_pos)
             d3.select(this).attr("d", function () {
