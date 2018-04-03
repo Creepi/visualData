@@ -33,7 +33,7 @@ const Crp = function (wrap, data) {
     this.nodeW = 180 //node宽度
     this.nodeH = 90 //node高度
     this.linkSize = 15 //连接口size
-    this.lineColor = '#e5e3e6'//连线颜色
+    this.lineColor = '#e5e3e6' //连线颜色
 
     this.nodes = data.nodes
     this.links = data.links
@@ -225,46 +225,54 @@ Crp.prototype = {
         //计算node内连接线起始点
         switch (linkType) {
             case "input":
-                linePoint = [parseInt(that.anchorBegin.attr('cx')), parseInt(that.anchorBegin.attr('cy'))]
+                // linePoint = [parseInt(that.anchorBegin.attr('cx')), parseInt(that.anchorBegin.attr('cy'))]
+                alert('不是输出端点')
                 break;
             case "output":
                 linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize / 2, parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
+                that.activeLine = that.wrap
+                    .append("path")
+                    .attr("class", "cable")
+                    .attr("from", that.nodeLineBegin.attr("id"))
+                    .attr("start", linePoint[0] + ", " + linePoint[1])
+                    .attr("output", d3.select(this).attr("output"))
+                    .attr("marker-end", "url(#arrow)");
+                that.points.push([that.getTranslate(that.nodeLineBegin.attr('transform'))[0] + linePoint[0], that.getTranslate(that.nodeLineBegin.attr('transform'))[1] + linePoint[1]])
                 break;
         }
 
-        that.activeLine = that.wrap
-            .append("path")
-            .attr("class", "cable")
-            .attr("from", that.nodeLineBegin.attr("id"))
-            .attr("start", linePoint[0] + ", " + linePoint[1])
-            .attr("output", d3.select(this).attr("output"))
-            .attr("marker-end", "url(#arrow)");
-        that.points.push([that.getTranslate(that.nodeLineBegin.attr('transform'))[0] + linePoint[0], that.getTranslate(that.nodeLineBegin.attr('transform'))[1] + linePoint[1]])
+
     },
     linedragged: function () {
         //获取底层this
         let that = d3.event.subject
         let nodeActive = d3.select(this.parentNode)
         let lineData = ''
-        that.points[1] = [d3.event.x + that.getTranslate(nodeActive.attr('transform'))[0], d3.event.y + that.getTranslate(nodeActive.attr('transform'))[1]];
-        that.activeLine.style('pointer-events', 'none');
-        //连线基本数据
-        lineData = "M" + that.points[0][0] + "," + that.points[0][1] +
-            "L" + that.points[1][0] + "," + that.points[1][1];
-        //画线
-        that.drawLine(lineData)
+        console.log(that.points.length)
+        if (that.points.length !=0) {
+            that.points[1] = [d3.event.x + that.getTranslate(nodeActive.attr('transform'))[0], d3.event.y + that.getTranslate(nodeActive.attr('transform'))[1]];
+            that.activeLine.style('pointer-events', 'none');
+            //连线基本数据
+            lineData = "M" + that.points[0][0] + "," + that.points[0][1] +
+                "L" + that.points[1][0] + "," + that.points[1][1];
+            //画线
+            that.drawLine(lineData)
+        }
+
     },
     lineended: function () {
         let that = d3.event.subject
-        console.log(that.anchorBegin.attr('linkType'))
         let nodeLineEnd = d3.select(this.parentNode)
         let anchorEnd = d3.select(this)
         console.log(anchorEnd.attr('linkType'))
         //判断 终点是否为节点、输入对接输出、是否为同一个node元素
-        if (that.linkCurrent != '' && that.anchorBegin.attr('linkType') != that.linkCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
-
-        } else {
-            that.activeLine.remove()
+        if (that.activeLine) {
+            if (that.linkCurrent != '' && that.anchorBegin.attr('linkType') != that.linkCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
+                that.activeLine.attr('to', that.nodeCurrent.attr('id'))
+                that.activeLine.attr('end', that.linkCurrent.attr('cx')+','+that.linkCurrent.attr('cy'))
+            } else {
+                that.activeLine.remove()
+            }
         }
         that.points = [] //连接线坐标清零
         that.activeLink = ''
@@ -288,8 +296,40 @@ Crp.prototype = {
         return [+arr[0], +arr[1]];
     },
     //更新连线
-    updateLine:function(elem) {
-        elem.attr()
+    updateLine: function (elem) {
+        that = d3.dataList
+        let id = elem.attr('id')
+        let tran_pos = that.getTranslate(elem.attr("transform")); //获取对于总容器坐标
+
+        d3.selectAll('path[from="' + id + '"]').each(function () { //start link
+            let path = d3.select(this).attr("d")
+            let start_pos = d3.select(this).attr("start").split(",") ////获取相对容器坐标
+            start_pos[0] = +start_pos[0] + tran_pos[0]
+            start_pos[1] = +start_pos[1] + tran_pos[1]
+            let end_pos = path.substring(path.lastIndexOf("L") + 1).split(",");
+            end_pos[0] = +end_pos[0];
+            end_pos[1] = +end_pos[1];
+            d3.select(this).attr("d", function () {
+                return "M" + start_pos[0] + "," + start_pos[1] +
+                    "L" + end_pos[0] + "," + end_pos[1];
+            })
+        })
+
+        d3.selectAll('path[to="' + id + '"]').each(function () { //start link
+            let path = d3.select(this).attr("d")
+            let start_pos =  path.substring(1,path.indexOf("L")).split(","); ////获取相对容器坐标
+            start_pos[0] = +start_pos[0]
+            start_pos[1] = +start_pos[1]
+            let end_pos = d3.select(this).attr("end").split(",");
+            console.log(end_pos)
+            end_pos[0] = +end_pos[0] + tran_pos[0]
+            end_pos[1] = +end_pos[1]+tran_pos[1]
+            console.log(end_pos)
+            d3.select(this).attr("d", function () {
+                return "M" + start_pos[0] + "," + start_pos[1] +
+                    "L" + end_pos[0] + "," + end_pos[1];
+            })
+        })
     }
 
 }
