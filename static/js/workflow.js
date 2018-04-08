@@ -273,7 +273,12 @@ Crp.prototype = {
                 that.activeLine.attr('end', that.linkCurrent.attr('cx')+','+that.linkCurrent.attr('cy'))
                 let lineData = "M" +that.points[0][0]+ "," + that.points[0][1] +
                 "L" + (that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize) + "," + that.points[1][1];
-                that.drawLine(lineData)
+                
+                let endPos = [that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize,that.points[1][1]]
+                let middlePosW = (endPos[0] + that.points[0][0])/2
+                let polyLine = `${that.points[0][0]},${that.points[0][1]} ${middlePosW},${that.points[0][1]} ${middlePosW},${that.points[1][1]} ${endPos[0]},${that.points[1][1]}`
+                that.activeLine.remove()
+                that.drawPoly(polyLine)
             } else {
                 that.activeLine.remove()
             }
@@ -293,6 +298,14 @@ Crp.prototype = {
         that = d3.dataList
         that.activeLine.attr("d", lineData).attr("stroke-width", 2).attr("stroke", that.lineColor).attr("fill", that.lineColor);
 
+    },
+    drawPoly:function(polyLine){
+        that = d3.dataList
+        that.wrap.append("polyline").attr("points",polyLine)
+        .attr("fill","none")
+        .attr("stroke-width","2")
+        .attr("stroke",that.lineColor)
+        .attr("marker-end", "url(#arrow)");
     },
     getTranslate: function (transform) {
         //解析translate坐标
