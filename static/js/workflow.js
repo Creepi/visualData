@@ -45,7 +45,7 @@ const Crp = function (wrap, data) {
     this.activeLine = ''
     this.activeLink = ''
     this.nodeLineBegin = ''
-    this.linkCurrent = ''
+    this.anchorCurrent = ''
     this.nodeCurrent - ''
     this.anchorBegin = '' //起始联结口
     d3.dataList = this
@@ -229,7 +229,7 @@ Crp.prototype = {
                 alert('不是输出端点')
                 break;
             case "output":
-                linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize+2 , parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
+                linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize + 2, parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
                 that.activeLine = that.wrap
                     .append("path")
                     .attr("class", "cable")
@@ -247,10 +247,8 @@ Crp.prototype = {
         //获取底层this
         let that = d3.event.subject
         let nodeActive = d3.select(this.parentNode)
-        console.log(nodeActive.attr('transform'))
         let lineData = ''
-        console.log(that.points.length)
-        if (that.points.length !=0) {
+        if (that.points.length != 0) {
             that.points[1] = [d3.event.x + that.getTranslate(nodeActive.attr('transform'))[0], d3.event.y + that.getTranslate(nodeActive.attr('transform'))[1]];
             that.activeLine.style('pointer-events', 'none');
             //连线基本数据
@@ -268,86 +266,97 @@ Crp.prototype = {
         console.log(anchorEnd.attr('linkType'))
         //判断 终点是否为节点、输入对接输出、是否为同一个node元素
         if (that.activeLine) {
-            if (that.linkCurrent != '' && that.anchorBegin.attr('linkType') != that.linkCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
-                that.activeLine.attr('to', that.nodeCurrent.attr('id'))
-                that.activeLine.attr('end', that.linkCurrent.attr('cx')+','+that.linkCurrent.attr('cy'))
-                let lineData = "M" +that.points[0][0]+ "," + that.points[0][1] +
-                "L" + (that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize) + "," + that.points[1][1];
-                
-                let endPos = [that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize,that.points[1][1]]
-                let middlePosW = (endPos[0] + that.points[0][0])/2
-                let polyLine = `${that.points[0][0]},${that.points[0][1]} ${middlePosW},${that.points[0][1]} ${middlePosW},${that.points[1][1]} ${endPos[0]},${that.points[1][1]}`
+            if (that.anchorCurrent != '' && that.anchorBegin.attr('linkType') != that.anchorCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
+                // that.activeLine.attr('to', that.nodeCurrent.attr('id'))
+                // that.activeLine.attr('end', that.linkCurrent.attr('cx')+','+that.linkCurrent.attr('cy'))
+                // let lineData = "M" +that.points[0][0]+ "," + that.points[0][1] +
+                // "L" + (that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize) + "," + that.points[1][1];
+                let beginPos = [that.points[0][0], that.points[0][1]] //折线起始点
+                let endPos = [that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize, that.points[1][1]] //折线终止点
+                // let middlePosW = (endPos[0] + that.points[0][0])/2
+                // let polyLine = `${that.points[0][0]},${that.points[0][1]} ${middlePosW},${that.points[0][1]} ${middlePosW},${that.points[1][1]} ${endPos[0]},${that.points[1][1]}`
                 that.activeLine.remove()
-                that.drawPoly(polyLine)
+                that.drawPoly(beginPos, endPos)
             } else {
                 that.activeLine.remove()
             }
         }
-        that.points = [] //连接线坐标清零
-        that.activeLink = ''
     },
     linkover: function () {
-        d3.dataList.linkCurrent = d3.select(this)
+        //判断连接点
+        d3.dataList.anchorCurrent = d3.select(this)
         d3.dataList.nodeCurrent = d3.select(this.parentNode)
     },
     linkleave: function () {
-        console.log(d3.dataList.linkCurrent)
-        d3.dataList.linkCurrent = ''
+        d3.dataList.anchorCurrent = ''
     },
     drawLine: function (lineData) {
         that = d3.dataList
         that.activeLine.attr("d", lineData).attr("stroke-width", 2).attr("stroke", that.lineColor).attr("fill", that.lineColor);
-
     },
-    drawPoly:function(polyLine){
+    drawPoly: function (beginPos, endPos,currentPoly) {
         that = d3.dataList
-        that.wrap.append("polyline").attr("points",polyLine)
-        .attr("fill","none")
-        .attr("stroke-width","2")
-        .attr("stroke",that.lineColor)
-        .attr("marker-end", "url(#arrow)");
+        let middlePosW = (parseInt(endPos[0]) + parseInt(beginPos[0])) / 2 //计算中间点
+        let polyLine = `${beginPos[0]},${beginPos[1]} ${middlePosW},${beginPos[1]} ${middlePosW},${endPos[1]} ${endPos[0]},${endPos[1]}`
+        console.warn(polyLine)
+        if(!currentPoly){
+            //create polyline
+            that.wrap.append("polyline").attr("points", polyLine)
+            .attr("fill", "none")
+            .attr("stroke-width", "2")
+            .attr("stroke", that.lineColor)
+            .attr("marker-end", "url(#arrow)")
+            .attr("from", that.nodeLineBegin.attr("id"))
+            .attr('to', that.nodeCurrent.attr('id'))
+            .attr("start",`${that.anchorBegin.attr('x')},${that.anchorBegin.attr('y')}`)
+            .attr('end', `${that.anchorCurrent.attr('cx')},${that.anchorCurrent.attr('cy')}`)
+            ;
+        }else{
+            d3.select(currentPoly).attr("points",polyLine)
+            .attr("from", that.nodeLineBegin.attr("id"))
+            .attr('to', that.nodeCurrent.attr('id'))
+        }
+       
     },
     getTranslate: function (transform) {
         //解析translate坐标
-        console.log(transform)
         let arr = transform.substring(transform.indexOf("(") + 1, transform.indexOf(")")).split(",");
         return [+arr[0], +arr[1]];
     },
     //更新连线
     updateLine: function (elem) {
-        that = d3.dataList
+       
+        that = d3.dataList 
         let id = elem.attr('id')
         let tran_pos = that.getTranslate(elem.attr("transform")); //获取对于总容器坐标
-
-        d3.selectAll('path[from="' + id + '"]').each(function () { //start link
-            let path = d3.select(this).attr("d")
+        
+        d3.selectAll('polyline[from="' + id + '"]').each(function () { //start link
             let start_pos = d3.select(this).attr("start").split(",") ////获取相对容器坐标
-            start_pos[0] = +start_pos[0] + tran_pos[0]
-            start_pos[1] = +start_pos[1] + tran_pos[1]
-            let end_pos = path.substring(path.lastIndexOf("L") + 1).split(",");
-            end_pos[0] = +end_pos[0];
-            end_pos[1] = +end_pos[1];
-            d3.select(this).attr("d", function () {
-                return "M" + start_pos[0] + "," + start_pos[1] +
-                    "L" + end_pos[0] + "," + end_pos[1];
-            })
+            let pointsArr = d3.select(this).attr("points").split(" ")
+            let end_pos = pointsArr[pointsArr.length-1].split(",")
+            start_pos[0] =  +start_pos[0] + tran_pos[0] + that.linkSize
+            start_pos[1] =  +start_pos[1] + tran_pos[1] + that.linkSize/2
+            that.drawPoly(start_pos,end_pos,this)
+            // d3.select(this).attr("d", function () {
+            //     return "M" + start_pos[0] + "," + start_pos[1] +
+            //         "L" + end_pos[0] + "," + end_pos[1];
+            // })
         })
 
-        d3.selectAll('path[to="' + id + '"]').each(function () { //start link
-            let path = d3.select(this).attr("d")
-            let start_pos =  path.substring(1,path.indexOf("L")).split(","); ////获取相对容器坐标
-            start_pos[0] = +start_pos[0]
-            start_pos[1] = +start_pos[1]
+        d3.selectAll('polyline[to="' + id + '"]').each(function () { //start link
+            let pointsArr = d3.select(this).attr("points").split(" ") //折线坐标点数组
+            let start_pos = pointsArr[0].split(","); //获取相对容器坐标
             let end_pos = d3.select(this).attr("end").split(",");
-            console.log(end_pos)
             end_pos[0] = +end_pos[0] + tran_pos[0] - that.linkSize
-            end_pos[1] = +end_pos[1]+tran_pos[1]
-            console.log(end_pos)
-            d3.select(this).attr("d", function () {
-                return "M" + start_pos[0] + "," + start_pos[1] +
-                    "L" + end_pos[0] + "," + end_pos[1];
-            })
+            end_pos[1] = +end_pos[1] + tran_pos[1] 
+            that.drawPoly(start_pos,end_pos,this)
+            // d3.select(this).attr("d", function () {
+            //     return "M" + start_pos[0] + "," + start_pos[1] +
+            //         "L" + end_pos[0] + "," + end_pos[1];
+            // })
         })
+        //清空临时数据
+  
     }
 
 }
