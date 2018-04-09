@@ -220,8 +220,6 @@ Crp.prototype = {
         let linkType = d3.select(this).attr('linkType')
         let linePoint = []
         let activeLink = d3.select(this)
-        that.anchorBegin = d3.select(this)
-        that.nodeLineBegin = d3.select(this.parentNode)
         //计算node内连接线起始点
         switch (linkType) {
             case "input":
@@ -229,6 +227,8 @@ Crp.prototype = {
                 alert('不是输出端点')
                 break;
             case "output":
+            that.anchorBegin = d3.select(this)
+            that.nodeLineBegin = d3.select(this.parentNode)
                 linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize + 2, parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
                 that.activeLine = that.wrap
                     .append("path")
@@ -263,7 +263,6 @@ Crp.prototype = {
         let that = d3.event.subject
         let nodeLineEnd = d3.select(this.parentNode)
         let anchorEnd = d3.select(this)
-        console.log(anchorEnd.attr('linkType'))
         //判断 终点是否为节点、输入对接输出、是否为同一个node元素
         if (that.activeLine) {
             if (that.anchorCurrent != '' && that.anchorBegin.attr('linkType') != that.anchorCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
@@ -275,12 +274,20 @@ Crp.prototype = {
                 let endPos = [that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize, that.points[1][1]] //折线终止点
                 // let middlePosW = (endPos[0] + that.points[0][0])/2
                 // let polyLine = `${that.points[0][0]},${that.points[0][1]} ${middlePosW},${that.points[0][1]} ${middlePosW},${that.points[1][1]} ${endPos[0]},${that.points[1][1]}`
-                that.activeLine.remove()
-                that.drawPoly(beginPos, endPos)
+               
+                
+                that.drawPoly(beginPos, endPos)//绘制折线
             } else {
-                that.activeLine.remove()
+                
             }
+            that.activeLine.remove()
+            that.activeLine = ""
+            // that.nodeCurrent = ""
+            // that.anchorCurrent = ""
+            // that.anchorBegin = ""
+            that.points = []
         }
+
     },
     linkover: function () {
         //判断连接点
