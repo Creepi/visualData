@@ -1,25 +1,36 @@
 const data = {
     nodes: [{
             'name': 'data',
-            'pos_x': 150,
+            'pos_x': 50,
             'pos_y': 200,
             'type': 'dataSource',
             'input': 2,
             'output': 1,
             'dataId': 'node-1',
             'theme': '#3e72b3',
-            'nodeId': '2131241'
+            'nodeId': '123'
         },
         {
             'name': 'cal',
-            'pos_x': 250,
-            'pos_y': 300,
+            'pos_x': 300,
+            'pos_y': 200,
             'type': 'caculate',
             'input': 1,
             'output': 1,
             'dataId': 'node-2',
             'theme': '#67b17a',
-            'nodeId': '324234'
+            'nodeId': '223'
+        },
+        {
+            'name': 'cal',
+            'pos_x': 550,
+            'pos_y': 200,
+            'type': 'caculate',
+            'input': 1,
+            'output': 2,
+            'dataId': 'node-3',
+            'theme': '#67b17a',
+            'nodeId': '333'
         }
     ],
     links: [{
@@ -35,6 +46,7 @@ const Crp = function (wrap, data) {
     this.linkSize = 15 //连接口size
     this.lineColor = '#e5e3e6' //连线颜色
 
+    this.drawing = false
     this.nodes = data.nodes
     this.links = data.links
 
@@ -51,7 +63,21 @@ const Crp = function (wrap, data) {
     d3.dataList = this
 }
 Crp.prototype = {
-    init: function () {
+    init: function (event) {
+        //取消浏览器右键
+        document.oncontextmenu = function(){
+            　　return false;
+            }
+       document.onclick = function(params) {
+            d3.selectAll(".node-menu").remove()
+       }
+             
+        //取消文本选中
+        if (document.selection) { 
+            document.selection.empty(); 
+            } else if (window.getSelection) { 
+            window.getSelection().removeAllRanges(); 
+            } 
         //初始化nodes
         this.drawConnector()
         this.dragAdd()
@@ -182,8 +208,9 @@ Crp.prototype = {
     },
     dragAdd: function () {
         d3.selectAll(".node-link").on("mouseover", this.linkover, true).on("mouseleave", this.linkleave, true)
+        d3.selectAll(".crp-node").on("mousedown",this.nodeMenu,true)
         //node点击
-        d3.selectAll('.crp-node').call(d3.drag()
+        d3.selectAll(".crp-node").call(d3.drag()
             .on("start", this.started)
             .on("drag", this.dragged)
             .on("end", this.ended))
@@ -227,8 +254,8 @@ Crp.prototype = {
                 alert('不是输出端点')
                 break;
             case "output":
-            that.anchorBegin = d3.select(this)
-            that.nodeLineBegin = d3.select(this.parentNode)
+                that.anchorBegin = d3.select(this)
+                that.nodeLineBegin = d3.select(this.parentNode)
                 linePoint = [parseInt(that.anchorBegin.attr('x')) + that.linkSize + 2, parseInt(that.anchorBegin.attr('y')) + that.linkSize / 2]
                 that.activeLine = that.wrap
                     .append("path")
@@ -246,6 +273,7 @@ Crp.prototype = {
     linedragged: function () {
         //获取底层this
         let that = d3.event.subject
+        that.drawing = true
         let nodeActive = d3.select(this.parentNode)
         let lineData = ''
         if (that.points.length != 0) {
@@ -264,7 +292,7 @@ Crp.prototype = {
         let nodeLineEnd = d3.select(this.parentNode)
         let anchorEnd = d3.select(this)
         //判断 终点是否为节点、输入对接输出、是否为同一个node元素
-        if (that.activeLine) {
+        if (that.activeLine && that.drawing == true) {
             if (that.anchorCurrent != '' && that.anchorBegin.attr('linkType') != that.anchorCurrent.attr('linkType') && that.nodeLineBegin.attr('id') != that.nodeCurrent.attr('id')) {
                 // that.activeLine.attr('to', that.nodeCurrent.attr('id'))
                 // that.activeLine.attr('end', that.linkCurrent.attr('cx')+','+that.linkCurrent.attr('cy'))
@@ -274,12 +302,13 @@ Crp.prototype = {
                 let endPos = [that.getTranslate(that.nodeCurrent.attr('transform'))[0] - that.linkSize, that.points[1][1]] //折线终止点
                 // let middlePosW = (endPos[0] + that.points[0][0])/2
                 // let polyLine = `${that.points[0][0]},${that.points[0][1]} ${middlePosW},${that.points[0][1]} ${middlePosW},${that.points[1][1]} ${endPos[0]},${that.points[1][1]}`
-               
-                
-                that.drawPoly(beginPos, endPos)//绘制折线
+
+
+                that.drawPoly(beginPos, endPos) //绘制折线
             } else {
-                
+
             }
+            that.drawing = false
             that.activeLine.remove()
             that.activeLine = ""
             // that.nodeCurrent = ""
@@ -291,8 +320,13 @@ Crp.prototype = {
     },
     linkover: function () {
         //判断连接点
-        d3.dataList.anchorCurrent = d3.select(this)
-        d3.dataList.nodeCurrent = d3.select(this.parentNode)
+        const that = d3.dataList
+        if (that.drawing == true) {
+            
+            d3.dataList.anchorCurrent = d3.select(this)
+            d3.dataList.nodeCurrent = d3.select(this.parentNode)
+        }
+
     },
     linkleave: function () {
         d3.dataList.anchorCurrent = ''
@@ -301,29 +335,29 @@ Crp.prototype = {
         that = d3.dataList
         that.activeLine.attr("d", lineData).attr("stroke-width", 2).attr("stroke", that.lineColor).attr("fill", that.lineColor);
     },
-    drawPoly: function (beginPos, endPos,currentPoly) {
+    drawPoly: function (beginPos, endPos, currentPoly) {
         that = d3.dataList
         let middlePosW = (parseInt(endPos[0]) + parseInt(beginPos[0])) / 2 //计算中间点
         let polyLine = `${beginPos[0]},${beginPos[1]} ${middlePosW},${beginPos[1]} ${middlePosW},${endPos[1]} ${endPos[0]},${endPos[1]}`
-        console.warn(polyLine)
-        if(!currentPoly){
+        let nodeDistance = [Math.abs(beginPos[0] - endPos[0]),nodeDistanceX = Math.abs(beginPos[1] - endPos[1])] //两个节点间的距离
+        if(nodeDistance[0] < that.nodeW/2 ||nodeDistance[1]<that.nodeH/2){
+            polyLine = `${beginPos[0]},${beginPos[1]} ${endPos[0]},${endPos[1]}`
+        }
+        if (!currentPoly) {
             //create polyline
             that.wrap.append("polyline").attr("points", polyLine)
-            .attr("fill", "none")
-            .attr("stroke-width", "2")
-            .attr("stroke", that.lineColor)
-            .attr("marker-end", "url(#arrow)")
-            .attr("from", that.nodeLineBegin.attr("id"))
-            .attr('to', that.nodeCurrent.attr('id'))
-            .attr("start",`${that.anchorBegin.attr('x')},${that.anchorBegin.attr('y')}`)
-            .attr('end', `${that.anchorCurrent.attr('cx')},${that.anchorCurrent.attr('cy')}`)
-            ;
-        }else{
-            d3.select(currentPoly).attr("points",polyLine)
-            .attr("from", that.nodeLineBegin.attr("id"))
-            .attr('to', that.nodeCurrent.attr('id'))
+                .attr("fill", "none")
+                .attr("stroke-width", "2")
+                .attr("stroke", that.lineColor)
+                .attr("marker-end", "url(#arrow)")
+                .attr("from", that.nodeLineBegin.attr("id"))
+                .attr('to', that.nodeCurrent.attr('id'))
+                .attr("start", `${that.anchorBegin.attr('x')},${that.anchorBegin.attr('y')}`)
+                .attr('end', `${that.anchorCurrent.attr('cx')},${that.anchorCurrent.attr('cy')}`);
+        } else {
+            d3.select(currentPoly).attr("points", polyLine)
         }
-       
+
     },
     getTranslate: function (transform) {
         //解析translate坐标
@@ -332,18 +366,18 @@ Crp.prototype = {
     },
     //更新连线
     updateLine: function (elem) {
-       
-        that = d3.dataList 
+
+        that = d3.dataList
         let id = elem.attr('id')
         let tran_pos = that.getTranslate(elem.attr("transform")); //获取对于总容器坐标
-        
+
         d3.selectAll('polyline[from="' + id + '"]').each(function () { //start link
             let start_pos = d3.select(this).attr("start").split(",") ////获取相对容器坐标
             let pointsArr = d3.select(this).attr("points").split(" ")
-            let end_pos = pointsArr[pointsArr.length-1].split(",")
-            start_pos[0] =  +start_pos[0] + tran_pos[0] + that.linkSize
-            start_pos[1] =  +start_pos[1] + tran_pos[1] + that.linkSize/2
-            that.drawPoly(start_pos,end_pos,this)
+            let end_pos = pointsArr[pointsArr.length - 1].split(",")
+            start_pos[0] = +start_pos[0] + tran_pos[0] + that.linkSize
+            start_pos[1] = +start_pos[1] + tran_pos[1] + that.linkSize / 2
+            that.drawPoly(start_pos, end_pos, this)
             // d3.select(this).attr("d", function () {
             //     return "M" + start_pos[0] + "," + start_pos[1] +
             //         "L" + end_pos[0] + "," + end_pos[1];
@@ -355,17 +389,48 @@ Crp.prototype = {
             let start_pos = pointsArr[0].split(","); //获取相对容器坐标
             let end_pos = d3.select(this).attr("end").split(",");
             end_pos[0] = +end_pos[0] + tran_pos[0] - that.linkSize
-            end_pos[1] = +end_pos[1] + tran_pos[1] 
-            that.drawPoly(start_pos,end_pos,this)
+            end_pos[1] = +end_pos[1] + tran_pos[1]
+            that.drawPoly(start_pos, end_pos, this)
             // d3.select(this).attr("d", function () {
             //     return "M" + start_pos[0] + "," + start_pos[1] +
             //         "L" + end_pos[0] + "," + end_pos[1];
             // })
         })
         //清空临时数据
-  
-    }
 
+    },
+    nodeMenu: function(){
+        const that = d3.dataList
+        let menuList = [{
+            name:"deleteNode",
+            func: deleteNode
+        },
+        {
+            name:"deleteLine",
+            func: deleteLine
+        }]
+        function deleteNode () {
+            console,log("node")
+        }
+        function deleteLine() {
+            console,log("line")
+        }
+        let nodeId = d3.select(this).attr("id")
+        
+        console.log(this)
+        
+        if(d3.event.button == 2){
+            d3.selectAll(".node-menu").remove()
+            that.wrap.append("g").attr("class","node-menu").selectAll(".node-menu").data(menuList).enter().append("rect")
+            .attr("stroke-width", 2)
+            .attr("stroke", "#e5e3e6")
+            .attr("fill", "#fff")
+            .attr("x", d3.event.x)
+            .attr('y', d3.event.y)
+            .attr("width",200)
+            .attr("height",200)
+        }
+    }
 }
 
 
