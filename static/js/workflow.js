@@ -68,7 +68,10 @@ Crp.prototype = {
         document.oncontextmenu = function(){
             　　return false;
             }
-       document.onclick = function(params) {
+        //取消文本选中
+        document.onselectstart = function(){return false;}; 
+
+        document.onclick = function(params) {
             d3.selectAll(".node-menu").remove()
        }
              
@@ -230,6 +233,10 @@ Crp.prototype = {
         //计算点击位置间距
         that.pointDistanceX = d3.event.x - d.pos_x
         that.pointDistanceY = d3.event.y - d.pos_y
+        //
+        
+
+        
     },
     dragged: function (d) {
         let that = d3.dataList
@@ -399,8 +406,12 @@ Crp.prototype = {
         //清空临时数据
 
     },
-    nodeMenu: function(){
+    nodeMenu: function(e){
         const that = d3.dataList
+        console.log(d3.event.target.parentNode)
+        console.log(d3.select(this).raise())
+        
+       
         let menuList = [{
             name:"deleteNode",
             func: deleteNode
@@ -418,17 +429,19 @@ Crp.prototype = {
         let nodeId = d3.select(this).attr("id")
         
         console.log(this)
-        
+        d3.selectAll(".node-menu").remove()
         if(d3.event.button == 2){
-            d3.selectAll(".node-menu").remove()
-            that.wrap.append("g").attr("class","node-menu").selectAll(".node-menu").data(menuList).enter().append("rect")
+            let g = that.wrap.append("g").attr("class","node-menu").selectAll(".node-menu").data(menuList).enter().append("rect")
             .attr("stroke-width", 2)
             .attr("stroke", "#e5e3e6")
             .attr("fill", "#fff")
             .attr("x", d3.event.x)
             .attr('y', d3.event.y)
-            .attr("width",200)
-            .attr("height",200)
+            .attr("width",120)
+            .attr("height",120)
+            
+        }else{
+            
         }
     }
 }

@@ -17,6 +17,34 @@
     var even = d3.selectAll("tr").select(function(d, i) { return i & 1 ? this : null; });
     ```
 
+  - d3 元素排序
+
+    #####sort()
+
+    ```javascript
+    .on("mouseover", function(d) {
+        svg.selectAll("path").sort(function (a, b) { // select the parent and sort the path's
+          if (a.id != d.id) return -1;               // a is not the hovered element, send "a" to the back
+          else return 1;                             // a is the hovered element, bring "a" to the front
+      });
+    })
+    ```
+
+    #####raise() and lower()
+
+    ```js
+    //raise 
+    selection.each(function() {
+      this.parentNode.appendChild(this);
+    });
+    //lower
+    selection.each(function() {
+      this.parentNode.insertBefore(this, this.parentNode.firstChild);
+    });
+    ```
+
+    > 能快速地改变现有DOM元素在父节点中的先后位置
+
     ​
 
 - 绑定数据
