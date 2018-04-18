@@ -1,6 +1,7 @@
 const data = {
     nodes: [{
             'name': 'data',
+            'type': 'table',
             'pos_x': 50,
             'pos_y': 200,
             'type': 'dataSource',
@@ -8,10 +9,11 @@ const data = {
             'output': 1,
             'dataId': 'node-1',
             'theme': '#3e72b3',
-            'nodeId': '123'
+            'nodeId': 'N123'
         },
         {
             'name': 'cal',
+            'type': 'cal',
             'pos_x': 300,
             'pos_y': 200,
             'type': 'caculate',
@@ -19,10 +21,11 @@ const data = {
             'output': 1,
             'dataId': 'node-2',
             'theme': '#67b17a',
-            'nodeId': '223'
+            'nodeId': 'N223'
         },
         {
             'name': 'cal',
+            'type': 'cal',
             'pos_x': 550,
             'pos_y': 200,
             'type': 'caculate',
@@ -30,7 +33,7 @@ const data = {
             'output': 2,
             'dataId': 'node-3',
             'theme': '#67b17a',
-            'nodeId': '333'
+            'nodeId': 'N333'
         }
     ],
     links: [{
@@ -65,22 +68,24 @@ const Crp = function (wrap, data) {
 Crp.prototype = {
     init: function (event) {
         //取消浏览器右键
-        document.oncontextmenu = function(){
-            　　return false;
-            }
+        document.oncontextmenu = function () {　　
+            return false;
+        }
         //取消文本选中
-        document.onselectstart = function(){return false;}; 
+        document.onselectstart = function () {
+            return false;
+        };
 
-        document.onclick = function(params) {
+        document.onclick = function (params) {
             d3.selectAll(".node-menu").remove()
-       }
-             
+        }
+
         //取消文本选中
-        if (document.selection) { 
-            document.selection.empty(); 
-            } else if (window.getSelection) { 
-            window.getSelection().removeAllRanges(); 
-            } 
+        if (document.selection) {
+            document.selection.empty();
+        } else if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
         //初始化nodes
         this.drawConnector()
         this.dragAdd()
@@ -88,7 +93,7 @@ Crp.prototype = {
     drawConnector: function () {
         let g = this.wrap.selectAll('.crp-node').data(this.nodes).enter().append("g")
             .attr("class", "crp-node")
-            .attr("id", d => '#' + d.nodeId)
+            .attr("id", d => d.nodeId)
             .attr("input", d => d.input)
             .attr("output", d => d.output)
             .attr("theme", d => d.theme)
@@ -211,7 +216,7 @@ Crp.prototype = {
     },
     dragAdd: function () {
         d3.selectAll(".node-link").on("mouseover", this.linkover, true).on("mouseleave", this.linkleave, true)
-        d3.selectAll(".crp-node").on("mousedown",this.nodeMenu,true)
+        d3.selectAll(".crp-node").on("mousedown", this.nodeMenu, true)
         //node点击
         d3.selectAll(".crp-node").call(d3.drag()
             .on("start", this.started)
@@ -234,9 +239,9 @@ Crp.prototype = {
         that.pointDistanceX = d3.event.x - d.pos_x
         that.pointDistanceY = d3.event.y - d.pos_y
         //
-        
 
-        
+
+
     },
     dragged: function (d) {
         let that = d3.dataList
@@ -329,7 +334,7 @@ Crp.prototype = {
         //判断连接点
         const that = d3.dataList
         if (that.drawing == true) {
-            
+
             d3.dataList.anchorCurrent = d3.select(this)
             d3.dataList.nodeCurrent = d3.select(this.parentNode)
         }
@@ -344,12 +349,25 @@ Crp.prototype = {
     },
     drawPoly: function (beginPos, endPos, currentPoly) {
         that = d3.dataList
-        let middlePosW = (parseInt(endPos[0]) + parseInt(beginPos[0])) / 2 //计算中间点
-        let polyLine = `${beginPos[0]},${beginPos[1]} ${middlePosW},${beginPos[1]} ${middlePosW},${endPos[1]} ${endPos[0]},${endPos[1]}`
-        let nodeDistance = [Math.abs(beginPos[0] - endPos[0]),nodeDistanceX = Math.abs(beginPos[1] - endPos[1])] //两个节点间的距离
-        if(nodeDistance[0] < that.nodeW/2 ||nodeDistance[1]<that.nodeH/2){
-            polyLine = `${beginPos[0]},${beginPos[1]} ${endPos[0]},${endPos[1]}`
+        let middlePosX = (parseInt(endPos[0]) + parseInt(beginPos[0])) / 2 //计算中间点X
+        let middleposY = (parseInt(endPos[1]) + parseInt(beginPos[1])) / 2 -that.headerHeight/2//计算中间点Y
+        let polyLine = `${beginPos[0]},${beginPos[1]} ${middlePosX},${beginPos[1]} ${middlePosX},${endPos[1]} ${endPos[0]},${endPos[1]}`
+        let nodeDistance = [Math.abs(beginPos[0] - endPos[0]), nodeDistanceX = Math.abs(beginPos[1] - endPos[1])] //两个节点间的距离
+
+        if (beginPos[0] - endPos[0] >= -that.nodeH / 2) {
+            console.log("right")
+            //起始点在结束点右侧
+            polyLine = `${beginPos[0]},${beginPos[1]} ${+beginPos[0]+parseInt(that.nodeH/2)},${beginPos[1]} ${+beginPos[0]+parseInt(that.nodeH/2)},${middleposY} ${endPos[0]-that.nodeH/2},${middleposY} ${endPos[0]-that.nodeH/2},${endPos[1]} ${endPos[0]},${endPos[1]}`
+
+            if(endPos[1]-beginPos[1] <= 100){
+                //右上间距过小
+                console.log("right-bottom")
+                // polyLine = `${beginPos[0]},${beginPos[1]} ${endPos[0]},${endPos[1]}`
+            }
         }
+
+
+
         if (!currentPoly) {
             //create polyline
             that.wrap.append("polyline").attr("points", polyLine)
@@ -406,42 +424,77 @@ Crp.prototype = {
         //清空临时数据
 
     },
-    nodeMenu: function(e){
+    nodeMenu: function (e) {
         const that = d3.dataList
         console.log(d3.event.target.parentNode)
         console.log(d3.select(this).raise())
-        
-       
+
+
         let menuList = [{
-            name:"deleteNode",
-            func: deleteNode
-        },
-        {
-            name:"deleteLine",
-            func: deleteLine
-        }]
-        function deleteNode () {
-            console,log("node")
+                name: "deleteNode",
+                func: deleteNode
+            },
+            {
+                name: "deleteLine",
+                func: deleteLine
+            }
+        ]
+
+        function deleteNode() {
+
         }
+
         function deleteLine() {
-            console,log("line")
+
         }
         let nodeId = d3.select(this).attr("id")
-        
-        console.log(this)
         d3.selectAll(".node-menu").remove()
-        if(d3.event.button == 2){
-            let g = that.wrap.append("g").attr("class","node-menu").selectAll(".node-menu").data(menuList).enter().append("rect")
-            .attr("stroke-width", 2)
-            .attr("stroke", "#e5e3e6")
-            .attr("fill", "#fff")
-            .attr("x", d3.event.x)
-            .attr('y', d3.event.y)
-            .attr("width",120)
-            .attr("height",120)
-            
-        }else{
-            
+        if (d3.event.button == 2) {
+            let g = that.wrap.selectAll(".node-menu").data(menuList).enter().append("g").attr("class", "node-menu")
+            g.append("rect")
+                .attr("stroke-width", 2)
+                .attr("stroke", "#e5e3e6")
+                .attr("fill", "#fff")
+                .attr("x", d3.event.x)
+                .attr('y', d3.event.y)
+                .attr("width", 120)
+                .attr("height", 120)
+
+        } else {
+
+        }
+    },
+    addNode:function(nodeObj){
+        const that = d3.dataList
+        that.nodes.push(nodeObj)
+        that.drawConnector()
+        that.dragAdd()
+    },
+    nodeDel:function(nodeId){
+        const that = d3.dataList
+        d3.select(`#${nodeId}`).remove()
+        for(let i=0;i<that.nodes.length;i++){
+            if(that.nodes[i]['nodeId'] == nodeId){
+                that.nodes.splice(i,1)
+            }
+        }
+        //删除关联连线
+        d3.selectAll('polyline[from="' + nodeId + '"]').each(function () { 
+            d3.select(this).remove()
+        })
+
+        d3.selectAll('polyline[to="' + nodeId + '"]').each(function () { 
+            d3.select(this).remove()
+        })
+        return that.nodes
+    },
+    getData: function () {
+        //获取节点信息
+        const that = d3.dataList
+
+        return {
+            "nodes": that.nodes,
+            "links": that.links
         }
     }
 }
