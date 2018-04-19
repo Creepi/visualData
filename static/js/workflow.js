@@ -1,49 +1,5 @@
-const data = {
-    nodes: [{
-            'name': 'data',
-            'type': 'table',
-            'pos_x': 50,
-            'pos_y': 200,
-            'type': 'dataSource',
-            'input': 2,
-            'output': 1,
-            'dataId': 'node-1',
-            'theme': '#3e72b3',
-            'nodeId': 'N123'
-        },
-        {
-            'name': 'cal',
-            'type': 'cal',
-            'pos_x': 300,
-            'pos_y': 200,
-            'type': 'caculate',
-            'input': 1,
-            'output': 1,
-            'dataId': 'node-2',
-            'theme': '#67b17a',
-            'nodeId': 'N223'
-        },
-        {
-            'name': 'cal',
-            'type': 'cal',
-            'pos_x': 550,
-            'pos_y': 200,
-            'type': 'caculate',
-            'input': 1,
-            'output': 2,
-            'dataId': 'node-3',
-            'theme': '#67b17a',
-            'nodeId': 'N333'
-        }
-    ],
-    links: [{
-        "source": "0",
-        "target": "1",
-        "data": {}
-    }, ]
-}
 const Crp = function (wrap, data) {
-    this.wrap = d3.select('.crp-container') //容器名称
+    this.wrap = d3.select(`.${wrap}`) //容器名称
     this.nodeW = 180 //node宽度
     this.nodeH = 90 //node高度
     this.linkSize = 15 //连接口size
@@ -63,6 +19,7 @@ const Crp = function (wrap, data) {
     this.anchorCurrent = ''
     this.nodeCurrent - ''
     this.anchorBegin = '' //起始联结口
+    this.currentNodeName = ''
     d3.dataList = this
 }
 Crp.prototype = {
@@ -86,17 +43,38 @@ Crp.prototype = {
         } else if (window.getSelection) {
             window.getSelection().removeAllRanges();
         }
+        //设置宽高
+        let parentNode = this.wrap.node().parentNode
+        this.wrap.attr("width",parentNode.offsetWidth).attr("height",parentNode.offsetHeight)
         //初始化nodes
         this.drawConnector()
         this.dragAdd()
     },
     drawConnector: function () {
+        //渲染主题色
+        for(let i =0;i<this.nodes.length;i++){
+            console.log(this.nodes[i].type)
+            switch (this.nodes[i].type){
+                case "calc":
+                    this.nodes[i].theme = "#63bad5";
+                    break;
+                case "handle":
+                    this.nodes[i].theme = "#e08b42";
+                    break;
+                case "data":
+
+                    this.nodes[i].theme = "#5ca86f";
+                    break;
+
+            }
+        }
         let g = this.wrap.selectAll('.crp-node').data(this.nodes).enter().append("g")
             .attr("class", "crp-node")
             .attr("id", d => d.nodeId)
             .attr("input", d => d.input)
             .attr("output", d => d.output)
             .attr("theme", d => d.theme)
+            .attr("name",d => d.name)
             .attr("transform", d => `translate(${d.pos_x},${d.pos_y})`)
         let rect = g.append('rect')
             .attr("rx", 5)
@@ -216,7 +194,7 @@ Crp.prototype = {
     },
     dragAdd: function () {
         d3.selectAll(".node-link").on("mouseover", this.linkover, true).on("mouseleave", this.linkleave, true)
-        d3.selectAll(".crp-node").on("mousedown", this.nodeMenu, true)
+        d3.selectAll(".crp-node").on("mousedown", this.nodeDown, true)
         //node点击
         d3.selectAll(".crp-node").call(d3.drag()
             .on("start", this.started)
@@ -424,45 +402,13 @@ Crp.prototype = {
         //清空临时数据
 
     },
-    nodeMenu: function (e) {
+    nodeDown: function (e) {
         const that = d3.dataList
         console.log(d3.event.target.parentNode)
-        console.log(d3.select(this).raise())
+        d3.select(this).raise()
+        that.currentNodeName = d3.select(d3.event.target.parentNode).attr("name")
+        that.nodeDownExtra()
 
-
-        let menuList = [{
-                name: "deleteNode",
-                func: deleteNode
-            },
-            {
-                name: "deleteLine",
-                func: deleteLine
-            }
-        ]
-
-        function deleteNode() {
-
-        }
-
-        function deleteLine() {
-
-        }
-        let nodeId = d3.select(this).attr("id")
-        d3.selectAll(".node-menu").remove()
-        if (d3.event.button == 2) {
-            let g = that.wrap.selectAll(".node-menu").data(menuList).enter().append("g").attr("class", "node-menu")
-            g.append("rect")
-                .attr("stroke-width", 2)
-                .attr("stroke", "#e5e3e6")
-                .attr("fill", "#fff")
-                .attr("x", d3.event.x)
-                .attr('y', d3.event.y)
-                .attr("width", 120)
-                .attr("height", 120)
-
-        } else {
-
-        }
     },
     addNode:function(nodeObj){
         const that = d3.dataList
@@ -479,11 +425,11 @@ Crp.prototype = {
             }
         }
         //删除关联连线
-        d3.selectAll('polyline[from="' + nodeId + '"]').each(function () { 
+        d3.selectAll('polyline[from="' + nodeId + '"]').each(function () {
             d3.select(this).remove()
         })
 
-        d3.selectAll('polyline[to="' + nodeId + '"]').each(function () { 
+        d3.selectAll('polyline[to="' + nodeId + '"]').each(function () {
             d3.select(this).remove()
         })
         return that.nodes
@@ -494,11 +440,11 @@ Crp.prototype = {
 
         return {
             "nodes": that.nodes,
-            "links": that.links
+            "links": that.links,
+            "currentNodeName":that.currentNodeName
         }
+    },
+    nodeDownExtra: function () {
+        //外部调用函数
     }
 }
-
-
-var bew = new Crp('crp-container', data)
-bew.init()

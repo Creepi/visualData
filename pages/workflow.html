@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +9,61 @@
     <link rel="stylesheet" href="../node_modules/font-awesome/css/font-awesome.min.css">
     <title>Document</title>
 </head>
+
 <body>
     <div>
         <svg width="800" height="800" class="crp-container"></svg>
     </div>
     <script src="../node_modules/d3/build/d3.js"></script>
     <script src="../static/js/workflow.js"></script>
+    <script>
+        const data = {
+            nodes: [{
+                    'name': 'data',
+                    'type': 'table',
+                    'pos_x': 50,
+                    'pos_y': 200,
+                    'type': 'dataSource',
+                    'input': 2,
+                    'output': 1,
+                    'dataId': 'node-1',
+                    'theme': '#3e72b3',
+                    'nodeId': 'N123'
+                },
+                {
+                    'name': 'cal',
+                    'type': 'cal',
+                    'pos_x': 300,
+                    'pos_y': 200,
+                    'type': 'caculate',
+                    'input': 1,
+                    'output': 1,
+                    'dataId': 'node-2',
+                    'theme': '#67b17a',
+                    'nodeId': 'N223'
+                },
+                {
+                    'name': 'cal',
+                    'type': 'cal',
+                    'pos_x': 550,
+                    'pos_y': 200,
+                    'type': 'caculate',
+                    'input': 1,
+                    'output': 2,
+                    'dataId': 'node-3',
+                    'theme': '#67b17a',
+                    'nodeId': 'N333'
+                }
+            ],
+            links: [{
+                "source": "0",
+                "target": "1",
+                "data": {}
+            }, ]
+        }
+        var bew = new Crp('crp-container', data)
+        bew.init()
+    </script>
 </body>
+
 </html>
