@@ -1,4 +1,7 @@
+
+let self = ""
 const Crp = function (wrap, data) {
+    self = this
     this.wrap = d3.select(`.${wrap}`) //容器名称
     this.nodeW = 180 //node宽度
     this.nodeH = 90 //node高度
@@ -20,7 +23,6 @@ const Crp = function (wrap, data) {
     this.nodeCurrent - ''
     this.anchorBegin = '' //起始联结口
     this.currentNodeName = ''
-    d3.dataList = this
 }
 Crp.prototype = {
     init: function (event) {
@@ -193,10 +195,12 @@ Crp.prototype = {
         }
     },
     dragAdd: function () {
-        d3.selectAll(".node-link").on("mouseover", this.linkover, true).on("mouseleave", this.linkleave, true)
+
+        d3.selectAll(".node-link").on("mouseover",this.linkover, true).on("mouseleave", this.linkleave, true)
         d3.selectAll(".crp-node").on("mousedown", this.nodeDown, true)
         //node点击
-        d3.selectAll(".crp-node").call(d3.drag()
+        d3.selectAll(".crp-node").call(
+            d3.drag().subject(this)
             .on("start", this.started)
             .on("drag", this.dragged)
             .on("end", this.ended))
@@ -212,7 +216,7 @@ Crp.prototype = {
 
     },
     started: function (d) {
-        let that = d3.dataList
+        let that = d3.event.subject
         //计算点击位置间距
         that.pointDistanceX = d3.event.x - d.pos_x
         that.pointDistanceY = d3.event.y - d.pos_y
@@ -222,13 +226,13 @@ Crp.prototype = {
 
     },
     dragged: function (d) {
-        let that = d3.dataList
+        let that = d3.event.subject
         let transform = d3.select(this).attr('transform')
         d3.select(this).attr('transform', `translate(${d3.event.x - that.pointDistanceX},${d3.event.y - that.pointDistanceY})`)
         that.updateLine(d3.select(this)) //更新线
     },
     ended: function (d) {
-        let that = d3.dataList
+        let that = d3.event.subject
         d.pos_x = d3.event.x - that.pointDistanceX
         d.pos_y = d3.event.y - that.pointDistanceY
     },
@@ -310,27 +314,29 @@ Crp.prototype = {
     },
     linkover: function () {
         //判断连接点
-        const that = d3.dataList
+
+        const that = self
         if (that.drawing == true) {
 
-            d3.dataList.anchorCurrent = d3.select(this)
-            d3.dataList.nodeCurrent = d3.select(this.parentNode)
+            that.anchorCurrent = d3.select(this)
+            that.nodeCurrent = d3.select(this.parentNode)
         }
 
     },
     linkleave: function () {
-        d3.dataList.anchorCurrent = ''
+        const that = self
+        that.anchorCurrent = ''
     },
     drawLine: function (lineData) {
-        that = d3.dataList
+        const that = self
         that.activeLine.attr("d", lineData).attr("stroke-width", 2).attr("stroke", that.lineColor).attr("fill", that.lineColor);
     },
     drawPoly: function (beginPos, endPos, currentPoly) {
-        that = d3.dataList
+        const that = self
         let middlePosX = (parseInt(endPos[0]) + parseInt(beginPos[0])) / 2 //计算中间点X
         let middleposY = (parseInt(endPos[1]) + parseInt(beginPos[1])) / 2 -that.headerHeight/2//计算中间点Y
         let polyLine = `${beginPos[0]},${beginPos[1]} ${middlePosX},${beginPos[1]} ${middlePosX},${endPos[1]} ${endPos[0]},${endPos[1]}`
-        let nodeDistance = [Math.abs(beginPos[0] - endPos[0]), nodeDistanceX = Math.abs(beginPos[1] - endPos[1])] //两个节点间的距离
+        let nodeDistance = [Math.abs(beginPos[0] - endPos[0]), Math.abs(beginPos[1] - endPos[1])] //两个节点间的距离
 
         if (beginPos[0] - endPos[0] >= -that.nodeH / 2) {
             console.log("right")
@@ -370,7 +376,7 @@ Crp.prototype = {
     //更新连线
     updateLine: function (elem) {
 
-        that = d3.dataList
+        const that = self
         let id = elem.attr('id')
         let tran_pos = that.getTranslate(elem.attr("transform")); //获取对于总容器坐标
 
@@ -403,7 +409,7 @@ Crp.prototype = {
 
     },
     nodeDown: function (e) {
-        const that = d3.dataList
+        const that = self
         console.log(d3.event.target.parentNode)
         d3.select(this).raise()
         that.currentNodeName = d3.select(d3.event.target.parentNode).attr("name")
@@ -411,13 +417,13 @@ Crp.prototype = {
 
     },
     addNode:function(nodeObj){
-        const that = d3.dataList
+        const that = self
         that.nodes.push(nodeObj)
         that.drawConnector()
         that.dragAdd()
     },
     nodeDel:function(nodeId){
-        const that = d3.dataList
+        const that = self
         d3.select(`#${nodeId}`).remove()
         for(let i=0;i<that.nodes.length;i++){
             if(that.nodes[i]['nodeId'] == nodeId){
@@ -436,7 +442,7 @@ Crp.prototype = {
     },
     getData: function () {
         //获取节点信息
-        const that = d3.dataList
+        const that = self
 
         return {
             "nodes": that.nodes,
