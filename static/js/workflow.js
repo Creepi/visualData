@@ -53,23 +53,25 @@ Crp.prototype = {
         this.dragAdd()
     },
     drawConnector: function () {
+        console.log(this.nodes)
         //渲染主题色
         for(let i =0;i<this.nodes.length;i++){
-            console.log(this.nodes[i].type)
             switch (this.nodes[i].type){
                 case "calc":
-                    this.nodes[i].theme = "#63bad5";
+                    this.nodes[i].theme = "#977e74";
                     break;
                 case "handle":
-                    this.nodes[i].theme = "#e08b42";
+                    this.nodes[i].theme = "#ea7327";
                     break;
                 case "data":
-
-                    this.nodes[i].theme = "#5ca86f";
+                    this.nodes[i].theme = "#4BB3D3";
                     break;
+                case "output":
+                    this.nodes[i].theme = "#2566af";
 
             }
         }
+        
         let g = this.wrap.selectAll('.crp-node').data(this.nodes).enter().append("g")
             .attr("class", "crp-node")
             .attr("id", d => d.nodeId)
@@ -78,6 +80,7 @@ Crp.prototype = {
             .attr("theme", d => d.theme)
             .attr("name",d => d.name)
             .attr("transform", d => `translate(${d.pos_x},${d.pos_y})`)
+            
         let rect = g.append('rect')
             .attr("rx", 5)
             .attr("ry", 5)
@@ -200,7 +203,7 @@ Crp.prototype = {
         d3.selectAll(".crp-node").on("mousedown", this.nodeDown, true)
         //node点击
         d3.selectAll(".crp-node").call(
-            d3.drag().subject(this)
+            d3.drag().subject(this.subject)
             .on("start", this.started)
             .on("drag", this.dragged)
             .on("end", this.ended))
@@ -215,24 +218,24 @@ Crp.prototype = {
 
 
     },
-    started: function (d) {
-        let that = d3.event.subject
+     subject:function(d) {
+        return d == null ? {x: event.x, y: event.y} : d;
+      },
+    started: function () {
+        let that = self
+        let d = d3.event.subject 
         //计算点击位置间距
         that.pointDistanceX = d3.event.x - d.pos_x
         that.pointDistanceY = d3.event.y - d.pos_y
-        //
-
-
-
     },
     dragged: function (d) {
-        let that = d3.event.subject
+        let that = self
         let transform = d3.select(this).attr('transform')
         d3.select(this).attr('transform', `translate(${d3.event.x - that.pointDistanceX},${d3.event.y - that.pointDistanceY})`)
         that.updateLine(d3.select(this)) //更新线
     },
     ended: function (d) {
-        let that = d3.event.subject
+        let that = self
         d.pos_x = d3.event.x - that.pointDistanceX
         d.pos_y = d3.event.y - that.pointDistanceY
     },
@@ -350,8 +353,6 @@ Crp.prototype = {
             }
         }
 
-
-
         if (!currentPoly) {
             //create polyline
             that.wrap.append("polyline").attr("points", polyLine)
@@ -418,7 +419,8 @@ Crp.prototype = {
     },
     addNode:function(nodeObj){
         const that = self
-        that.nodes.push(nodeObj)
+        let nodeNew = JSON.parse(JSON.stringify(nodeObj))
+        that.nodes.push(nodeNew)
         that.drawConnector()
         that.dragAdd()
     },
